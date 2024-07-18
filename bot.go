@@ -54,7 +54,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	stack := newStack()
-	buff := ""
+	var buff strings.Builder
 	invalidBracketArrangement := false
 
 	for _, r := range m.Content {
@@ -71,7 +71,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 	}
 
-	if stack.IsEmpty() {
+	if stack.IsEmpty() && !invalidBracketArrangement {
 		return
 	}
 
@@ -79,18 +79,19 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		opening, _ := stack.pop()
 		switch opening {
 		case '(':
-			buff += ")"
+			buff.WriteString(")")
 		case '[':
-			buff += "]"
+			buff.WriteString("]")
 		case '{':
-			buff += "}"
+			buff.WriteString("}")
 		}
 	}
+
 	if invalidBracketArrangement {
-		buff += "\nInvalid Bracket Arrangement Detected"
+		buff.WriteString("\nInvalid Bracket Arrangement Detected")
 	}
-	buff += "\n-# Bracket Closing Service"
-	s.ChannelMessageSend(m.ChannelID, buff)
+
+	buff.WriteString("\n-# Bracket Closing Service")
 }
 
 func isOpenBracket(r rune) bool {
